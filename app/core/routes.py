@@ -21,3 +21,17 @@ class BaggageRoutes:
     PREFIX = "/baggage"
     BY_ID = "/{baggage_id}"
     STATUS = "/{baggage_id}/status"
+    EVENTS = "/{baggage_id}/events"  # ← add
+
+
+class PublicRoutes:
+    """Unauthenticated endpoints used by the QR web page."""
+
+    PREFIX = "/public/qr"
+    BY_TOKEN = "/{token_id}"
+    SCAN = "/{token_id}/scan"
+    FOUND = "/{token_id}/found"
+
+
+class WebRoutes:
+    QR = "/qr/{token_id}"  # the page itself, served at the site root (not under API_PREFIX)

@@ -21,8 +21,15 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str
+
+    DATABASE_SSL: bool = True
     DATABASE_ECHO: bool = False
-    DATABASE_SSL: bool = False
+
+    # Application database connection pool settings
+    DATABASE_POOL_SIZE: int = 5
+    DATABASE_MAX_OVERFLOW: int = 5
+    DATABASE_POOL_TIMEOUT: int = 30
+    DATABASE_POOL_RECYCLE: int = 1800
 
     # JWT / tokens
     SECRET_KEY: str = Field(min_length=32)
@@ -45,6 +52,11 @@ class Settings(BaseSettings):
     FIREBASE_ENABLED: bool = False
     FIREBASE_CREDENTIALS_FILE: str | None = None  # path to the service-account JSON (local/dev)
     FIREBASE_CREDENTIALS_JSON: str | None = None  # the JSON itself (Azure App Settings / Key Vault)
+
+    # Public QR page (finder side)
+    QR_SCAN_PUSH_COOLDOWN_SECONDS: int = 600  # max one "tag scanned" push per bag per window
+    QR_FOUND_COOLDOWN_SECONDS: int = 60  # max one "I found it" report per bag per window
+    QR_REVEAL_PHONE_WHEN_LOST: bool = False  # show the owner's phone to finders while status=lost
 
     model_config = SettingsConfigDict(
         env_file=".env",

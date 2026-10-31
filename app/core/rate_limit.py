@@ -16,8 +16,9 @@ class RateLimit:
 
     _hits: dict[str, deque[float]] = defaultdict(deque)
 
-    def __init__(self, scope: str) -> None:
+    def __init__(self, scope: str, per_minute: int | None = None) -> None:
         self.scope = scope
+        self.per_minute = per_minute  # None = settings.RATE_LIMIT_PER_MINUTE
 
     async def __call__(self, request: Request) -> None:
         ip = request.client.host if request.client else "unknown"
@@ -26,7 +27,7 @@ class RateLimit:
         window = self._hits[key]
         while window and now - window[0] > 60:
             window.popleft()
-        if len(window) >= settings.RATE_LIMIT_PER_MINUTE:
+        if len(window) >= (self.per_minute or settings.RATE_LIMIT_PER_MINUTE):
             raise RateLimitError(retry_after=max(1, int(60 - (now - window[0]))))
         window.append(now)
 

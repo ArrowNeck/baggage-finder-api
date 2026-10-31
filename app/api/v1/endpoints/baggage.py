@@ -13,6 +13,7 @@ from app.schemas.baggage import (
     BaggageUpdate,
 )
 from app.schemas.common import Page
+from app.schemas.public import ScanEventResponse
 from app.services.baggage_service import BaggageService
 
 router = APIRouter(prefix=BaggageRoutes.PREFIX, tags=["Baggage"])
@@ -36,7 +37,7 @@ async def list_baggage(
     category: Category | None = None,
 ) -> Page[BaggageResponse]:
     """List your baggage, newest first. Optional filters: status, category."""
-    return await BaggageService(db).list(
+    return await BaggageService(db).list_for_user(
         current_user, page=page, limit=limit, status=status, category=category
     )
 
@@ -65,3 +66,14 @@ async def change_baggage_status(
 async def delete_baggage(baggage_id: uuid.UUID, current_user: CurrentUser, db: DB) -> Response:
     await BaggageService(db).delete(current_user, baggage_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(BaggageRoutes.EVENTS, response_model=list[ScanEventResponse])
+async def list_baggage_events(
+    baggage_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DB,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+) -> list[ScanEventResponse]:
+    """When your tag was scanned and where finders reported it (newest first)."""
+    return await BaggageService(db).list_events(current_user, baggage_id, limit)

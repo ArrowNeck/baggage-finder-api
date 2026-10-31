@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import Category, Status
 from app.models.baggage import Baggage
+from app.models.user import User
 
 
 class BaggageRepository:
@@ -60,3 +61,13 @@ class BaggageRepository:
     async def delete(self, baggage: Baggage) -> None:
         await self.db.delete(baggage)
         await self.db.flush()
+
+    async def get_public_by_token(self, token_id: str) -> tuple[Baggage, User] | None:
+        """Baggage + its owner by QR token. Bags of soft-deleted users are not found."""
+        result = await self.db.execute(
+            select(Baggage, User)
+            .join(User, User.id == Baggage.user_id)
+            .where(Baggage.token_id == token_id, User.is_deleted.is_(False))
+        )
+        row = result.first()
+        return (row[0], row[1]) if row else None

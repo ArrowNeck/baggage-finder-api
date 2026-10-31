@@ -8,8 +8,10 @@ from app.core.exceptions import NotFoundError
 from app.models.baggage import Baggage
 from app.models.user import User
 from app.repositories.baggage_repository import BaggageRepository
+from app.repositories.scan_event_repository import ScanEventRepository
 from app.schemas.baggage import BaggageCreate, BaggageResponse, BaggageUpdate
 from app.schemas.common import Page
+from app.schemas.public import ScanEventResponse
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -24,6 +26,7 @@ class BaggageService:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
         self.repo = BaggageRepository(db)
+        self.events = ScanEventRepository(db)
 
     async def _get_owned(self, user: User, baggage_id: uuid.UUID) -> Baggage:
         baggage = await self.repo.get_owned(baggage_id, user.id)
@@ -46,7 +49,7 @@ class BaggageService:
         logger.info("Baggage created", extra={"baggage_id": str(baggage.id)})
         return BaggageResponse.model_validate(baggage)
 
-    async def list(
+    async def list_for_user(
         self,
         user: User,
         *,
@@ -96,3 +99,11 @@ class BaggageService:
         await self.repo.delete(baggage)
         await self.db.commit()
         logger.info("Baggage deleted", extra={"baggage_id": str(baggage_id)})
+
+    async def list_events(
+        self, user: User, baggage_id: uuid.UUID, limit: int
+    ) -> list[ScanEventResponse]:
+        """Scans and finder reports (with locations) for one of your bags, newest first."""
+        baggage = await self._get_owned(user, baggage_id)
+        events = await self.events.list_for_baggage(baggage.id, limit)
+        return [ScanEventResponse.model_validate(e) for e in events]

@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.api.v1.api import v1_router
+from app.api.web import router as web_router
 from app.core.config import settings
 from app.core.handlers import register_exception_handlers
 from app.core.middleware import RequestLoggingMiddleware
@@ -84,6 +85,7 @@ def create_app() -> FastAPI:
 
     # ── Routers ──────────────────────────────────────────────────────────────
     app.include_router(v1_router, prefix=settings.API_PREFIX)
+    app.include_router(web_router)
 
     # ── Health / readiness ───────────────────────────────────────────────────
     app.get("/health", tags=["Health"], include_in_schema=False)(health_check)

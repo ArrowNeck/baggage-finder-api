@@ -126,7 +126,7 @@ These follow your project changes; adjust the Flutter models accordingly.
 
 ## Project Structure
 
-```
+```text
 app/
 ├── api/              # Route handlers (thin) + dependencies
 │   ├── deps.py       # DB session, CurrentUser
@@ -176,3 +176,21 @@ change without a matching migration fails CI.
 ## License
 
 Proprietary — All rights reserved.
+
+## CURLS
+
+# 1. sign up (copy "accessToken" from the response)
+
+curl -s -X POST http://127.0.0.1:8000/api/signUp \
+ -H 'content-type: application/json' \
+ -d '{"name":"John Doe","email":"john@example.com","password":"correct-horse-1","phone":"123-456-7890","fcm_token":"test-token"}'
+
+# 2. create a bag (copy "token_id" from the response)
+
+curl -s -X POST http://127.0.0.1:8000/api/baggage \
+ -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzOWYwNDk4OC1mZTNmLTRlMTEtOWRkYi0zZDY1OWVjNDY2NzAiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzkzNDU4ODgyLCJleHAiOjE3OTM0NjA2ODJ9.bHdk7aj8rr4i0BlSXByzD39tUcfbzQAoLU9eigOl_lQ" \
+ -H 'content-type: application/json' \
+ -d '{"name":"My Laptop Bag","category":"luggage","color":"#112233","brand":"Acme"}'
+OC1mZTNmLTRlMTEtOWRkYi0zZDY1OWVjNDY2NzAiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzkzNDU4ODgyLCJleHAiOjE3OTM0NjA2ODJ9.bHdk7aj8rr4i0BlSXByzD39tUcfbzQAoLU9eigOl_lQ" \
+  -H 'content-type: application/json' \
+  -d '{"name":"My Laptop Bag","category":"luggage","color":"#112233","brand":"Acme"}'

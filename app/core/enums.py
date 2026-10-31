@@ -13,3 +13,8 @@ class Category(enum.StrEnum):
     cargo = "cargo"
     camera = "camera"
     other = "other"
+
+
+class ScanKind(enum.StrEnum):
+    scan = "scan"  # the QR page was opened
+    found = "found"  # the finder pressed "Notify owner"
