@@ -1,0 +1,50 @@
+# Local development stack. Do not use these credentials anywhere real.
+x-api-env: &api-env
+  env_file: .env
+  environment:
+    # Inside the compose network the database host is `db`, not localhost.
+    DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/baggage_finder_db
+    DATABASE_SSL: "false"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: baggage_finder_db
+      FIREBASE_ENABLED: "true"
+      FIREBASE_CREDENTIALS_FILE: /run/secrets/firebase.json
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # One-shot job: apply migrations once, then exit (safe with several api replicas).
+  migrate:
+    build: .
+    <<: *api-env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: .
+    restart: unless-stopped
+    <<: *api-env
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
