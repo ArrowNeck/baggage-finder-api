@@ -42,7 +42,7 @@ class BaggageService:
             category=payload.category,
             color=payload.color,
             brand=payload.brand,
-            status=payload.status,
+            status=Status.active,
             remarks=payload.remarks,
         )
         await self.db.commit()

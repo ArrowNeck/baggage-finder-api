@@ -18,7 +18,6 @@ class BaggageCreate(BaseSchema):
     category: Category = Category.general
     color: HexColor
     brand: Text256 | None = None
-    status: Status = Status.active
     remarks: Remarks | None = None
 
 
