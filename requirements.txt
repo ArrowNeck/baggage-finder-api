@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+alembic
+asyncpg
+aiosqlite
+pydantic
+pydantic-settings
+email-validator
+PyJWT
+bcrypt
+firebase-admin

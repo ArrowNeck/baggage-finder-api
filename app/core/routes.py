@@ -17,11 +17,16 @@ class UserRoutes:
     PUSH_TEST = "/user/push-test"
 
 
+class DashboardRoutes:
+    PREFIX = "/dashboard"
+    STATS = "/stats"
+
+
 class BaggageRoutes:
     PREFIX = "/baggage"
     BY_ID = "/{baggage_id}"
     STATUS = "/{baggage_id}/status"
-    EVENTS = "/{baggage_id}/events"  # ← add
+    EVENTS = "/{baggage_id}/events"
 
 
 class PublicRoutes:

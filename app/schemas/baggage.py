@@ -6,6 +6,7 @@ from pydantic import StringConstraints, model_validator
 
 from app.core.base_schemas import BaseResponse, BaseSchema
 from app.core.enums import Category, Status
+from app.core.types import HexColor
 
 Text256 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=256)]
 Text100 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
@@ -15,7 +16,7 @@ Remarks = Annotated[str, StringConstraints(max_length=2000)]
 class BaggageCreate(BaseSchema):
     name: Text256
     category: Category = Category.general
-    color: Text100
+    color: HexColor
     brand: Text256 | None = None
     status: Status = Status.active
     remarks: Remarks | None = None
@@ -24,7 +25,7 @@ class BaggageCreate(BaseSchema):
 class BaggageUpdate(BaseSchema):
     name: Text256 | None = None
     category: Category | None = None
-    color: Text100 | None = None
+    color: HexColor | None = None
     brand: Text256 | None = None
     status: Status | None = None
     remarks: Remarks | None = None
@@ -50,7 +51,7 @@ class BaggageResponse(BaseResponse):
     token_id: str
     name: str
     category: Category
-    color: str
+    color: HexColor
     brand: str | None = None
     status: Status
     remarks: str | None = None

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from app.core.base_schemas import BaseResponse, BaseSchema
 from app.core.enums import Category, ScanKind, Status
+from app.core.types import HexColor
 
 Latitude = Annotated[float, Field(ge=-90, le=90, allow_inf_nan=False)]
 Longitude = Annotated[float, Field(ge=-180, le=180, allow_inf_nan=False)]
@@ -24,7 +25,7 @@ class PublicBaggageResponse(BaseModel):
 
     name: str
     category: Category
-    color: str
+    color: HexColor
     brand: str | None = None
     status: Status
     owner: PublicOwner

@@ -5,4 +5,10 @@ from app.models.user import User
 
 # and add "BaggageScanEvent" to __all__
 
-__all__ = ["User", "Baggage", "RefreshToken", "PasswordResetToken", "BaggageScanEvent"]
+__all__ = [
+    "User",
+    "Baggage",
+    "RefreshToken",
+    "PasswordResetToken",
+    "BaggageScanEvent",
+]

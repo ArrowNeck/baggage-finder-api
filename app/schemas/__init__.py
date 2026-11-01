@@ -1,6 +1,7 @@
 from app.schemas.auth import AuthResponse, LoginRequest, TokenResponse
 from app.schemas.baggage import BaggageCreate, BaggageResponse, BaggageUpdate
 from app.schemas.common import MessageResponse, Page
+from app.schemas.dashboard import DashboardResponse
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "UserCreate",
     "UserResponse",
     "UserUpdate",
+    "DashboardResponse",
 ]

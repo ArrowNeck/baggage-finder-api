@@ -4,8 +4,8 @@ import enum
 import uuid
 from typing import TYPE_CHECKING
 
+from sqlalchemy import CheckConstraint, ForeignKey, String, Text, Uuid
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import Category, Status
@@ -25,12 +25,23 @@ def _enum_column(enum_cls: type[enum.Enum]) -> SAEnum:
         enum_cls,
         native_enum=False,
         length=20,
-        values_callable=lambda e: [member.value for member in e],
+        values_callable=_enum_values,
     )
+
+
+def _enum_values(enum_cls: type[enum.Enum]) -> list[str]:
+    return [str(member.value) for member in enum_cls]
 
 
 class Baggage(Base, TimestampMixin):
     __tablename__ = "baggages"
+
+    __table_args__ = (
+        CheckConstraint(
+            "color ~ '^#[0-9A-Fa-f]{6}$'",
+            name="ck_baggages_color_hex",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
 
