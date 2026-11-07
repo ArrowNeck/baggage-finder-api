@@ -7,8 +7,10 @@ from app.core.exceptions import BadRequestError
 from app.core.rate_limit import RateLimit
 from app.core.routes import UserRoutes
 from app.schemas.auth import PasswordChangeRequest
+from app.schemas.chat import OwnerRealtimeSession
 from app.schemas.common import MessageResponse
 from app.schemas.user import UserResponse, UserUpdate
+from app.services import realtime_service
 from app.services.push_service import send_push
 from app.services.user_service import UserService
 
@@ -68,3 +70,14 @@ async def send_test_push(current_user: CurrentUser) -> MessageResponse:
     return MessageResponse(
         message="Test notification sent" if sent else "Could not send (check server logs)"
     )
+
+
+@router.post(
+    UserRoutes.REALTIME_TOKEN,
+    response_model=OwnerRealtimeSession,
+    dependencies=[Depends(RateLimit("rt-token", per_minute=20))],
+)
+async def realtime_token(current_user: CurrentUser) -> OwnerRealtimeSession:
+    """Firebase sign-in for the app. The returned uid is your user id, so the security rules
+    let you listen to your own conversations (query `ownerUid == owner_uid`) and nothing else."""
+    return OwnerRealtimeSession(**await realtime_service.owner_session(current_user.id))

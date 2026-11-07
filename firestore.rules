@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // One signal document per conversation. Only the API (Admin SDK, which ignores these
+    // rules) writes it. Clients can only read.
+    match /conversations/{conversationId} {
+      // The finder's token has a conversationId claim; the owner's uid is stored as ownerUid.
+      allow get: if request.auth != null && (
+        request.auth.token.get('conversationId', '') == conversationId ||
+        resource.data.get('ownerUid', '') == request.auth.uid
+      );
+      // The owner's inbox: queries must filter on their own uid.
+      allow list: if request.auth != null && resource.data.get('ownerUid', '') == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

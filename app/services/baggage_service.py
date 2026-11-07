@@ -8,10 +8,12 @@ from app.core.exceptions import NotFoundError
 from app.models.baggage import Baggage
 from app.models.user import User
 from app.repositories.baggage_repository import BaggageRepository
+from app.repositories.chat_repository import ChatRepository
 from app.repositories.scan_event_repository import ScanEventRepository
 from app.schemas.baggage import BaggageCreate, BaggageResponse, BaggageUpdate
 from app.schemas.common import Page
 from app.schemas.public import ScanEventResponse
+from app.services import realtime_service
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -27,6 +29,7 @@ class BaggageService:
         self.db = db
         self.repo = BaggageRepository(db)
         self.events = ScanEventRepository(db)
+        self.chats = ChatRepository(db)
 
     async def _get_owned(self, user: User, baggage_id: uuid.UUID) -> Baggage:
         baggage = await self.repo.get_owned(baggage_id, user.id)
@@ -48,6 +51,17 @@ class BaggageService:
         await self.db.commit()
         logger.info("Baggage created", extra={"baggage_id": str(baggage.id)})
         return BaggageResponse.model_validate(baggage)
+
+    async def _close_chats_if_recovered(
+        self, user: User, baggage: Baggage, previous: Status
+    ) -> None:
+        """A recovered bag ends its chats: tell every open listener right away."""
+        if baggage.status != Status.recovered or previous == Status.recovered:
+            return
+        for conversation_id in await self.chats.list_ids_for_baggage(baggage.id):
+            await realtime_service.publish_conversation(
+                conversation_id, user.id, baggage.id, closed=True
+            )
 
     async def list_for_user(
         self,
@@ -75,9 +89,11 @@ class BaggageService:
         self, user: User, baggage_id: uuid.UUID, payload: BaggageUpdate
     ) -> BaggageResponse:
         baggage = await self._get_owned(user, baggage_id)
+        previous = baggage.status
         changes = payload.model_dump(exclude_unset=True)
         await self.repo.update(baggage, **changes)
         await self.db.commit()
+        await self._close_chats_if_recovered(user, baggage, previous)
         logger.info(
             "Baggage updated", extra={"baggage_id": str(baggage.id), "fields": list(changes)}
         )
@@ -87,8 +103,10 @@ class BaggageService:
         self, user: User, baggage_id: uuid.UUID, status: Status
     ) -> BaggageResponse:
         baggage = await self._get_owned(user, baggage_id)
+        previous = baggage.status
         await self.repo.update(baggage, status=status)
         await self.db.commit()
+        await self._close_chats_if_recovered(user, baggage, previous)
         logger.info(
             "Baggage status changed", extra={"baggage_id": str(baggage.id), "status": status}
         )
@@ -96,8 +114,10 @@ class BaggageService:
 
     async def delete(self, user: User, baggage_id: uuid.UUID) -> None:
         baggage = await self._get_owned(user, baggage_id)
+        conversation_ids = await self.chats.list_ids_for_baggage(baggage.id)
         await self.repo.delete(baggage)
         await self.db.commit()
+        await realtime_service.delete_conversations(conversation_ids)  # their signal documents
         logger.info("Baggage deleted", extra={"baggage_id": str(baggage_id)})
 
     async def list_events(

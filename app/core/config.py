@@ -58,12 +58,28 @@ class Settings(BaseSettings):
     QR_FOUND_COOLDOWN_SECONDS: int = 60  # max one "I found it" report per bag per window
     QR_REVEAL_PHONE_WHEN_LOST: bool = False  # show the owner's phone to finders while status=lost
 
+    FIREBASE_PROJECT_ID: str | None = None
+    FIREBASE_WEB_API_KEY: str | None = None  # public web key: Project settings > General
+    FIREBASE_AUTH_DOMAIN: str | None = None  # defaults to <project id>.firebaseapp.com
+    FIREBASE_WEB_SDK_VERSION: str = "10.14.1"  # loaded by the QR page from gstatic.com
+    PUSH_CHAT_DATA_ONLY: bool = True
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
     )
+
+    @property
+    def realtime_enabled(self) -> bool:
+        return bool(
+            self.FIREBASE_ENABLED and self.FIREBASE_PROJECT_ID and self.FIREBASE_WEB_API_KEY
+        )
+
+    @property
+    def firebase_auth_domain(self) -> str:
+        return self.FIREBASE_AUTH_DOMAIN or f"{self.FIREBASE_PROJECT_ID}.firebaseapp.com"
 
     @model_validator(mode="after")
     def check_firebase_credentials(self) -> "Settings":

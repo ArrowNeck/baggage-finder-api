@@ -18,3 +18,13 @@ class Category(enum.StrEnum):
 class ScanKind(enum.StrEnum):
     scan = "scan"  # the QR page was opened
     found = "found"  # the finder pressed "Notify owner"
+
+
+class ChatSender(enum.StrEnum):
+    owner = "owner"
+    finder = "finder"
+
+
+class ConversationStatus(enum.StrEnum):
+    open = "open"
+    closed = "closed"

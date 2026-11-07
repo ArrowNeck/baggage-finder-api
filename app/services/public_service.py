@@ -25,6 +25,8 @@ class PushJob:
     title: str
     body: str
     data: dict[str, str]
+    thread: str | None = None  # notification group (e.g. one chat conversation)
+    data_only: bool = False  # Android: no notification block, the app shows the popup
 
 
 class PublicBaggageService:
